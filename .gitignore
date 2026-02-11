@@ -85,3 +85,12 @@ data/
 # MongoDB
 dump/
 *.bson
+
+# Compiled TypeScript files
+*.js
+*.d.ts
+*.js.map
+*.d.ts.map
+
+# Allow config files
+!*.config.js
