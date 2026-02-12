@@ -145,25 +145,29 @@ async function fetchAndSavePokemon(identifier: string | number) {
       `${POKEAPI_BASE_URL}/pokemon/${identifier}`
     );
 
-    // Limit moves to 10
     const limitedMoves = pokemonData.moves.slice(0, 10);
 
-    const pokemon = new Pokemon({
-      id: pokemonData.id,
-      name: pokemonData.name,
-      height: pokemonData.height,
-      weight: pokemonData.weight,
-      sprites: {
-        front_default: pokemonData.sprites.front_default,
-        back_default: pokemonData.sprites.back_default,
-        front_shiny: pokemonData.sprites.front_shiny,
-      },
-      types: pokemonData.types,
-      moves: limitedMoves,
-      species: pokemonData.species,
-    });
-
-    await pokemon.save();
+      const pokemon = new Pokemon({
+        id: pokemonData.id,
+        name: pokemonData.name,
+        height: pokemonData.height,
+        weight: pokemonData.weight,
+        sprites: {
+          front_default: pokemonData.sprites.front_default,
+          back_default: pokemonData.sprites.back_default,
+          front_shiny: pokemonData.sprites.front_shiny,
+        },
+        types: pokemonData.types.map((t: any) => ({
+          slot: t.slot,
+          type: {
+            name: t.type.name,
+            url: t.type.url,
+          },
+        })),
+        moves: limitedMoves,
+        species: pokemonData.species,
+      });
+      await pokemon.save();
     return pokemon.toObject();
   } catch (error) {
     console.error(`Error fetching Pokemon ${identifier}:`, error);

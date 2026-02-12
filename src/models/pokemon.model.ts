@@ -27,12 +27,26 @@ export interface IPokemon extends Document {
     name: string;
     url: string;
   };
-  evolutionChain?: {
-    chain: any;
-  };
+  evolutionChain?: any;
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+// Define subdocument schema WITHOUT _id
+const TypeSchema = new Schema({
+  slot: { type: Number, required: true },
+  type: {
+    name: { type: String, required: true },
+    url: { type: String, required: true },
+  }
+}, { _id: false });
+
+const MoveSchema = new Schema({
+  move: {
+    name: { type: String, required: true },
+    url: { type: String, required: true },
+  }
+}, { _id: false });
 
 const PokemonSchema: Schema = new Schema(
   {
@@ -45,26 +59,11 @@ const PokemonSchema: Schema = new Schema(
       back_default: { type: String, required: true },
       front_shiny: { type: String, required: true },
     },
-    types: [
-      {
-        slot: Number,
-        type: {
-          name: String,
-          url: String,
-        },
-      },
-    ],
-    moves: [
-      {
-        move: {
-          name: String,
-          url: String,
-        },
-      },
-    ],
+    types: [TypeSchema],
+    moves: [MoveSchema],
     species: {
-      name: String,
-      url: String,
+      name: { type: String, required: true },
+      url: { type: String, required: true },
     },
     evolutionChain: {
       type: Schema.Types.Mixed,
@@ -76,7 +75,6 @@ const PokemonSchema: Schema = new Schema(
   }
 );
 
-// Index for search functionality
 PokemonSchema.index({ name: 'text' });
 
 export default mongoose.model<IPokemon>('Pokemon', PokemonSchema);
