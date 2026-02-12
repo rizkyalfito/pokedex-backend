@@ -10,19 +10,35 @@ export interface IPokemon extends Document {
     back_default: string;
     front_shiny: string;
   };
-  types: Array<{
+  types: {
     slot: number;
     type: {
       name: string;
       url: string;
     };
-  }>;
-  moves: Array<{
+  }[];
+  moves: {
     move: {
       name: string;
       url: string;
     };
-  }>;
+  }[];
+  stats: {
+    base_stat: number;
+    effort: number;
+    stat: {
+      name: string;
+      url: string;
+    };
+  }[];
+  abilities: {
+    ability: {
+      name: string;
+      url: string;
+    };
+    is_hidden: boolean;
+    slot: number;
+  }[];
   species: {
     name: string;
     url: string;
@@ -32,38 +48,69 @@ export interface IPokemon extends Document {
   updatedAt?: Date;
 }
 
-// Define subdocument schema WITHOUT _id
-const TypeSchema = new Schema({
-  slot: { type: Number, required: true },
-  type: {
-    name: { type: String, required: true },
-    url: { type: String, required: true },
-  }
-}, { _id: false });
+const TypeSchema = new Schema(
+  {
+    slot: Number,
+    type: {
+      name: String,
+      url: String,
+    },
+  },
+  { _id: false }
+);
 
-const MoveSchema = new Schema({
-  move: {
-    name: { type: String, required: true },
-    url: { type: String, required: true },
-  }
-}, { _id: false });
+const MoveSchema = new Schema(
+  {
+    move: {
+      name: String,
+      url: String,
+    },
+  },
+  { _id: false }
+);
+
+const StatSchema = new Schema(
+  {
+    base_stat: Number,
+    effort: Number,
+    stat: {
+      name: String,
+      url: String,
+    },
+  },
+  { _id: false }
+);
+
+const AbilitySchema = new Schema(
+  {
+    ability: {
+      name: String,
+      url: String,
+    },
+    is_hidden: Boolean,
+    slot: Number,
+  },
+  { _id: false }
+);
 
 const PokemonSchema: Schema = new Schema(
   {
     id: { type: Number, required: true, unique: true },
     name: { type: String, required: true, unique: true },
-    height: { type: Number, required: true },
-    weight: { type: Number, required: true },
+    height: Number,
+    weight: Number,
     sprites: {
-      front_default: { type: String, required: true },
-      back_default: { type: String, required: true },
-      front_shiny: { type: String, required: true },
+      front_default: String,
+      back_default: String,
+      front_shiny: String,
     },
     types: [TypeSchema],
     moves: [MoveSchema],
+    stats: [StatSchema],
+    abilities: [AbilitySchema],
     species: {
-      name: { type: String, required: true },
-      url: { type: String, required: true },
+      name: String,
+      url: String,
     },
     evolutionChain: {
       type: Schema.Types.Mixed,

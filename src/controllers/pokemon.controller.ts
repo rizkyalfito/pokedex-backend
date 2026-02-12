@@ -97,25 +97,24 @@ export async function getPokemonDetail(req: Request, res: Response) {
       ? { name: identifier.toLowerCase() }
       : { id: parseInt(identifier) };
 
-    let pokemon = await Pokemon.findOne(query).lean();
+      let pokemon = await Pokemon.findOne(query).lean();
 
-    // If not in DB, fetch from API
-    if (!pokemon) {
-      pokemon = await fetchAndSavePokemon(identifier);
-    }
-
-    // If evolution chain is not populated, fetch it
-    if (pokemon && !pokemon.evolutionChain) {
-      const evolutionChain = await fetchEvolutionChain(pokemon.species.url);
-      if (evolutionChain) {
-        await Pokemon.findOneAndUpdate(
-          query,
-          { evolutionChain },
-          { new: true }
-        );
-        pokemon.evolutionChain = evolutionChain;
+      if (!pokemon) {
+        pokemon = await fetchAndSavePokemon(identifier);
       }
-    }
+
+      if (pokemon && !pokemon.evolutionChain) {
+        const evolutionChain = await fetchEvolutionChain(pokemon.species.url);
+        if (evolutionChain) {
+          await Pokemon.findOneAndUpdate(
+            query,
+            { evolutionChain },
+            { new: true }
+          );
+          pokemon.evolutionChain = evolutionChain;
+        }
+      }
+
 
     if (!pokemon) {
       return res.status(404).json({
@@ -140,39 +139,31 @@ export async function getPokemonDetail(req: Request, res: Response) {
 
 // Fetch and save a single Pokemon
 async function fetchAndSavePokemon(identifier: string | number) {
-  try {
-    const pokemonData = await fetchFromPokeAPI(
-      `${POKEAPI_BASE_URL}/pokemon/${identifier}`
-    );
+  const pokemonData = await fetchFromPokeAPI(
+    `${POKEAPI_BASE_URL}/pokemon/${identifier}`
+  );
 
-    const limitedMoves = pokemonData.moves.slice(0, 10);
+  const limitedMoves = pokemonData.moves.slice(0, 20);
 
-      const pokemon = new Pokemon({
-        id: pokemonData.id,
-        name: pokemonData.name,
-        height: pokemonData.height,
-        weight: pokemonData.weight,
-        sprites: {
-          front_default: pokemonData.sprites.front_default,
-          back_default: pokemonData.sprites.back_default,
-          front_shiny: pokemonData.sprites.front_shiny,
-        },
-        types: pokemonData.types.map((t: any) => ({
-          slot: t.slot,
-          type: {
-            name: t.type.name,
-            url: t.type.url,
-          },
-        })),
-        moves: limitedMoves,
-        species: pokemonData.species,
-      });
-      await pokemon.save();
-    return pokemon.toObject();
-  } catch (error) {
-    console.error(`Error fetching Pokemon ${identifier}:`, error);
-    throw error;
-  }
+  const pokemon = new Pokemon({
+    id: pokemonData.id,
+    name: pokemonData.name,
+    height: pokemonData.height,
+    weight: pokemonData.weight,
+    sprites: {
+      front_default: pokemonData.sprites.front_default,
+      back_default: pokemonData.sprites.back_default,
+      front_shiny: pokemonData.sprites.front_shiny,
+    },
+    types: pokemonData.types,
+    moves: limitedMoves,
+    stats: pokemonData.stats,
+    abilities: pokemonData.abilities,
+    species: pokemonData.species,
+  });
+
+  await pokemon.save();
+  return pokemon.toObject();
 }
 
 // Fetch and save initial Pokemon (first 100)
